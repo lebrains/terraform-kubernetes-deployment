@@ -15,7 +15,7 @@ resource "kubernetes_deployment" "deploy_app" {
     strategy {
       type = var.strategy_update
       dynamic "rolling_update" {
-        for_each = flatten([var.rolling_update])
+        for_each = var.rolling_update != null ? [var.rolling_update] : []
         content {
           max_surge       = rolling_update.value.max_surge
           max_unavailable = rolling_update.value.max_unavailable
@@ -40,7 +40,7 @@ resource "kubernetes_deployment" "deploy_app" {
         automount_service_account_token = var.service_account_token
 
         restart_policy = var.restart_policy
-        
+
         dynamic "image_pull_secrets" {
           for_each = var.image_pull_secrets
           content {
@@ -195,7 +195,7 @@ resource "kubernetes_deployment" "deploy_app" {
         }
 
         dynamic "security_context" {
-          for_each = flatten([var.security_context])
+          for_each = var.security_context != null ? [var.security_context] : []
           content {
             fs_group        = security_context.value.fs_group
             run_as_group    = security_context.value.run_as_group
@@ -212,7 +212,7 @@ resource "kubernetes_deployment" "deploy_app" {
           command           = var.command
 
           dynamic "security_context" {
-            for_each = flatten([var.security_context_container])
+            for_each = var.security_context_container != null ? [var.security_context_container] : []
             content {
               allow_privilege_escalation = security_context.value.allow_privilege_escalation
               privileged                 = security_context.value.privileged
@@ -294,7 +294,7 @@ resource "kubernetes_deployment" "deploy_app" {
           }
 
           dynamic "liveness_probe" {
-            for_each = flatten([var.liveness_probe])
+            for_each = var.liveness_probe != null ? [var.liveness_probe] : []
             content {
               initial_delay_seconds = liveness_probe.value.initial_delay_seconds
               period_seconds        = liveness_probe.value.period_seconds
@@ -340,7 +340,7 @@ resource "kubernetes_deployment" "deploy_app" {
           }
 
           dynamic "readiness_probe" {
-            for_each = flatten([var.readiness_probe])
+            for_each = var.readiness_probe != null ? [var.readiness_probe] : []
             content {
               initial_delay_seconds = readiness_probe.value.initial_delay_seconds
               period_seconds        = readiness_probe.value.period_seconds
@@ -385,7 +385,7 @@ resource "kubernetes_deployment" "deploy_app" {
           }
 
           dynamic "lifecycle" {
-            for_each = flatten([var.lifecycle_events])
+            for_each = var.lifecycle_events != null ? [var.lifecycle_events] : []
             content {
               dynamic "pre_stop" {
                 for_each = lifecycle.value.pre_stop != null ? [lifecycle.value.pre_stop] : []
