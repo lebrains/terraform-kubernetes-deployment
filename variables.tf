@@ -51,12 +51,12 @@ variable "env_secret" {
   default     = {}
 }
 variable "resources" {
-/*  type = object({
+  type = object({
     request_cpu    = optional(string)
     request_memory = optional(string)
     limit_cpu      = optional(string)
     limit_memory   = optional(string)
-  })*/
+  })
   description = "(Optional) Compute Resources required by this container. CPU/RAM requests/limits"
   default     = {}
 }
@@ -103,11 +103,11 @@ variable "volume_config_map" {
     name        = string
     mode        = optional(string)
     optional    = optional(string)
-    items = optional(list(object({
+    items       = optional(list(object({
       key  = string
       path = string
       mode = optional(string)
-    })),[])
+    })), [])
   }))
   description = "(Optional) The data stored in a ConfigMap object can be referenced in a volume of type configMap and then consumed by containerized applications running in a Pod"
   default     = []
@@ -138,11 +138,11 @@ variable "volume_secret" {
     secret_name  = string
     default_mode = optional(string)
     optional     = optional(string)
-    items = optional(list(object({
+    items        = optional(list(object({
       key  = string
       path = string
       mode = optional(string)
-    })),[])
+    })), [])
   }))
   description = "(Optional) Create volume from secret"
   default     = []
@@ -187,28 +187,28 @@ variable "hosts" {
   default     = []
 }
 variable "security_context" {
-/*  type = object({
+  type = object({
     fs_group        = optional(string)
     run_as_group    = optional(string)
     run_as_user     = optional(string)
     run_as_non_root = optional(string)
-  })*/
+  })
   description = "(Optional) SecurityContext holds pod-level security attributes and common container settings"
-  default     = []
+  default     = null
 }
 variable "security_context_container" {
-/*  type = object({
+  type = object({
     allow_privilege_escalation = optional(string)
     privileged                 = optional(string)
     read_only_root_filesystem  = optional(string)
     run_as_non_root            = optional(string)
-    capabilities = optional(object({
-      add  = optional(list(string))
-      drop = optional(list(string))
-    }),{})
-  })*/
+    capabilities               = optional(object({
+      add  = optional(list(string), [])
+      drop = optional(list(string), [])
+    }))
+  })
   description = "(Optional) Security context in pod."
-  default     = []
+  default     = null
 }
 variable "custom_labels" {
   description = "(Optional) Add custom label to pods"
@@ -251,17 +251,17 @@ variable "min_ready_seconds" {
   default     = null
 }
 variable "liveness_probe" {
-/*  type = object({
+  type = object({
     initial_delay_seconds = optional(string)
     period_seconds        = optional(string)
     timeout_seconds       = optional(string)
     success_threshold     = optional(string)
     failure_threshold     = optional(string)
-    http_get = optional(object({
-      path   = optional(string)
-      port   = optional(string)
-      scheme = optional(string)
-      host   = optional(string)
+    http_get              = optional(object({
+      path        = optional(string)
+      port        = optional(string)
+      scheme      = optional(string)
+      host        = optional(string)
       http_header = optional(list(object({
         name  = string
         value = string
@@ -273,22 +273,22 @@ variable "liveness_probe" {
     tcp_socket = optional(object({
       port = number
     }))
-  })*/
+  })
   description = "(Optional) Periodic probe of container liveness. Container will be restarted if the probe fails. Cannot be updated. "
-  default     = []
+  default     = null
 }
 variable "readiness_probe" {
-/*  type = object({
+  type = object({
     initial_delay_seconds = optional(string)
     period_seconds        = optional(string)
     timeout_seconds       = optional(string)
     success_threshold     = optional(string)
     failure_threshold     = optional(string)
-    http_get = optional(object({
-      path   = optional(string)
-      port   = optional(string)
-      scheme = optional(string)
-      host   = optional(string)
+    http_get              = optional(object({
+      path        = optional(string)
+      port        = optional(string)
+      scheme      = optional(string)
+      host        = optional(string)
       http_header = optional(list(object({
         name  = string
         value = string
@@ -300,23 +300,23 @@ variable "readiness_probe" {
     tcp_socket = optional(object({
       port = number
     }))
-  })*/
+  })
   description = "(Optional) Periodic probe of container service readiness. Container will be removed from service endpoints if the probe fails. Cannot be updated. "
-  default     = []
+  default     = null
 }
 variable "lifecycle_events" {
-/*  type = object({
+  type = object({
     pre_stop = optional(object({
       initial_delay_seconds = optional(string)
       period_seconds        = optional(string)
       timeout_seconds       = optional(string)
       success_threshold     = optional(string)
       failure_threshold     = optional(string)
-      http_get = optional(object({
-        path   = optional(string)
-        port   = optional(string)
-        scheme = optional(string)
-        host   = optional(string)
+      http_get              = optional(object({
+        path        = optional(string)
+        port        = optional(string)
+        scheme      = optional(string)
+        host        = optional(string)
         http_header = optional(list(object({
           name  = string
           value = string
@@ -335,11 +335,11 @@ variable "lifecycle_events" {
       timeout_seconds       = optional(string)
       success_threshold     = optional(string)
       failure_threshold     = optional(string)
-      http_get = optional(object({
-        path   = optional(string)
-        port   = optional(string)
-        scheme = optional(string)
-        host   = optional(string)
+      http_get              = optional(object({
+        path        = optional(string)
+        port        = optional(string)
+        scheme      = optional(string)
+        host        = optional(string)
         http_header = optional(list(object({
           name  = string
           value = string
@@ -352,9 +352,9 @@ variable "lifecycle_events" {
         port = number
       }))
     }))
-  })*/
+  })
   description = "(Optional) Actions that the management system should take in response to container lifecycle events"
-  default     = []
+  default     = null
 }
 variable "image_pull_secrets" {
   description = "(Optional) Specify list of pull secrets"
@@ -372,12 +372,12 @@ variable "strategy_update" {
   default     = "RollingUpdate"
 }
 variable "rolling_update" {
-/*  type = object({
-    max_surge       = optional(string)
-    max_unavailable = optional(string)
-  })*/
+  type = object({
+    max_surge       = optional(string, "25%")
+    max_unavailable = optional(string, "25%")
+  })
   description = "Rolling update config params. Present only if strategy_update = RollingUpdate"
-  default     = []
+  default     = null
 }
 variable "wait_for_rollout" {
   type        = bool

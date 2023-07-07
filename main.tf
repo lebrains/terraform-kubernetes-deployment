@@ -17,8 +17,8 @@ resource "kubernetes_deployment" "deploy_app" {
       dynamic "rolling_update" {
         for_each = flatten([var.rolling_update])
         content {
-          max_surge       = lookup(rolling_update.value, "max_surge", "25%")
-          max_unavailable = lookup(rolling_update.value, "max_unavailable", "25%")
+          max_surge       = rolling_update.value.max_surge
+          max_unavailable = rolling_update.value.max_unavailable
         }
       }
     }
@@ -67,11 +67,11 @@ resource "kubernetes_deployment" "deploy_app" {
         dynamic "toleration" {
           for_each = var.toleration
           content {
-            effect             = lookup(toleration.value, "effect", null)
-            key                = lookup(toleration.value, "key", null)
-            operator           = lookup(toleration.value, "operator", null)
-            toleration_seconds = lookup(toleration.value, "toleration_seconds", null)
-            value              = lookup(toleration.value, "value", null)
+            effect             = toleration.value.effect
+            key                = toleration.value.key
+            operator           = toleration.value.operator
+            toleration_seconds = toleration.value.toleration_seconds
+            value              = toleration.value.value
           }
         }
 
@@ -88,8 +88,8 @@ resource "kubernetes_deployment" "deploy_app" {
           for_each = var.volume_empty_dir
           content {
             empty_dir {
-              medium     = lookup(volume.value, "medium", null)
-              size_limit = lookup(volume.value, "size_limit", null)
+              medium     = volume.value.medium
+              size_limit = volume.value.size_limit
             }
             name = volume.value.volume_name
           }
@@ -111,7 +111,7 @@ resource "kubernetes_deployment" "deploy_app" {
           content {
             host_path {
               path = volume.value.path_on_node
-              type = lookup(volume.value, "type", null)
+              type = volume.value.type
             }
             name = volume.value.volume_name
           }
@@ -123,13 +123,13 @@ resource "kubernetes_deployment" "deploy_app" {
             config_map {
               default_mode = volume.value.mode
               name         = volume.value.name
-              optional     = lookup(volume.value, "optional", null)
+              optional     = volume.value.optional
               dynamic "items" {
-                for_each = lookup(volume.value, "items", [])
+                for_each = volume.value.items
                 content {
                   key  = items.value.key
                   path = items.value.path
-                  mode = lookup(items.value, "mode", null)
+                  mode = items.value.mode
                 }
               }
             }
@@ -142,9 +142,9 @@ resource "kubernetes_deployment" "deploy_app" {
           content {
             gce_persistent_disk {
               pd_name   = volume.value.gce_disk
-              fs_type   = lookup(volume.value, "fs_type", null)
-              partition = lookup(volume.value, "partition", null)
-              read_only = lookup(volume.value, "read_only", null)
+              fs_type   = volume.value.fs_type
+              partition = volume.value.partition
+              read_only = volume.value.read_only
             }
             name = volume.value.volume_name
           }
@@ -155,14 +155,14 @@ resource "kubernetes_deployment" "deploy_app" {
           content {
             secret {
               secret_name  = volume.value.secret_name
-              default_mode = lookup(volume.value, "default_mode", null)
-              optional     = lookup(volume.value, "optional", null)
+              default_mode = volume.value.default_mode
+              optional     = volume.value.optional
               dynamic "items" {
-                for_each = lookup(volume.value, "items", [])
+                for_each = volume.value.items
                 content {
                   key  = items.value.key
                   path = items.value.path
-                  mode = lookup(items.value, "mode", null)
+                  mode = items.value.mode
                 }
               }
             }
@@ -174,9 +174,9 @@ resource "kubernetes_deployment" "deploy_app" {
           for_each = var.volume_aws_disk
           content {
             aws_elastic_block_store {
-              fs_type   = lookup(volume.value, "fs_type", null)
-              partition = lookup(volume.value, "partition", null)
-              read_only = lookup(volume.value, "read_only", null)
+              fs_type   = volume.value.fs_type
+              partition = volume.value.partition
+              read_only = volume.value.read_only
               volume_id = volume.value.volume_id
             }
             name = volume.value.volume_name
@@ -187,8 +187,8 @@ resource "kubernetes_deployment" "deploy_app" {
           for_each = var.volume_claim
           content {
             persistent_volume_claim {
-              claim_name = lookup(volume.value, "claim_name", null)
-              read_only  = lookup(volume.value, "read_only", null)
+              claim_name = volume.value.claim_name
+              read_only  = volume.value.read_only
             }
             name = volume.value.volume_name
           }
@@ -197,10 +197,10 @@ resource "kubernetes_deployment" "deploy_app" {
         dynamic "security_context" {
           for_each = flatten([var.security_context])
           content {
-            fs_group        = lookup(security_context.value, "fs_group", null)
-            run_as_group    = lookup(security_context.value, "run_as_group", null)
-            run_as_user     = lookup(security_context.value, "run_as_user", null)
-            run_as_non_root = lookup(security_context.value, "run_as_non_root", null)
+            fs_group        = security_context.value.fs_group
+            run_as_group    = security_context.value.run_as_group
+            run_as_user     = security_context.value.run_as_user
+            run_as_non_root = security_context.value.run_as_non_root
           }
         }
 
@@ -214,14 +214,14 @@ resource "kubernetes_deployment" "deploy_app" {
           dynamic "security_context" {
             for_each = flatten([var.security_context_container])
             content {
-              allow_privilege_escalation = lookup(security_context.value, "allow_privilege_escalation", null)
-              privileged                 = lookup(security_context.value, "privileged", null)
-              read_only_root_filesystem  = lookup(security_context.value, "read_only_root_filesystem", null)
+              allow_privilege_escalation = security_context.value.allow_privilege_escalation
+              privileged                 = security_context.value.privileged
+              read_only_root_filesystem  = security_context.value.read_only_root_filesystem
               dynamic "capabilities" {
-                for_each = length(security_context.value.capabilities) != 0 ? [security_context.value.capabilities] : []
+                for_each = security_context.value.capabilities != null ? [security_context.value.capabilities] : []
                 content {
-                  add  = lookup(capabilities.value, "add", [])
-                  drop = lookup(capabilities.value, "drop", [])
+                  add  = capabilities.value.add
+                  drop = capabilities.value.drop
                 }
               }
             }
@@ -264,12 +264,12 @@ resource "kubernetes_deployment" "deploy_app" {
             for_each = length(var.resources) == 0 ? [] : [{}]
             content {
               requests = {
-                cpu    = lookup(var.resources, "request_cpu", null)
-                memory = lookup(var.resources, "request_memory", null)
+                cpu    = var.resources.request_cpu
+                memory = var.resources.request_memory
               }
               limits = {
-                cpu    = lookup(var.resources, "limit_cpu", null)
-                memory = lookup(var.resources, "limit_memory", null)
+                cpu    = var.resources.limit_cpu
+                memory = var.resources.limit_memory
               }
             }
           }
@@ -279,7 +279,7 @@ resource "kubernetes_deployment" "deploy_app" {
             content {
               container_port = port.value.internal_port
               name           = substr(port.value.name, 0, 14)
-              host_port      = lookup(port.value, "host_port", null)
+              host_port      = port.value.host_port
             }
           }
 
@@ -287,32 +287,32 @@ resource "kubernetes_deployment" "deploy_app" {
             for_each = var.volume_mount
             content {
               mount_path = volume_mount.value.mount_path
-              sub_path   = lookup(volume_mount.value, "sub_path", null)
+              sub_path   = volume_mount.value.sub_path
               name       = volume_mount.value.volume_name
-              read_only  = lookup(volume_mount.value, "read_only", false)
+              read_only  = volume_mount.value.read_only
             }
           }
 
           dynamic "liveness_probe" {
             for_each = flatten([var.liveness_probe])
             content {
-              initial_delay_seconds = lookup(liveness_probe.value, "initial_delay_seconds", null)
-              period_seconds        = lookup(liveness_probe.value, "period_seconds", null)
-              timeout_seconds       = lookup(liveness_probe.value, "timeout_seconds", null)
-              success_threshold     = lookup(liveness_probe.value, "success_threshold", null)
-              failure_threshold     = lookup(liveness_probe.value, "failure_threshold", null)
+              initial_delay_seconds = liveness_probe.value.initial_delay_seconds
+              period_seconds        = liveness_probe.value.period_seconds
+              timeout_seconds       = liveness_probe.value.timeout_seconds
+              success_threshold     = liveness_probe.value.success_threshold
+              failure_threshold     = liveness_probe.value.failure_threshold
 
               dynamic "http_get" {
-                for_each = contains(keys(liveness_probe.value), "http_get") ? [liveness_probe.value.http_get] : []
+                for_each = liveness_probe.value.http_get != null ? [liveness_probe.value.http_get] : []
 
                 content {
-                  path   = lookup(http_get.value, "path", null)
-                  port   = lookup(http_get.value, "port", null)
-                  scheme = lookup(http_get.value, "scheme", null)
-                  host   = lookup(http_get.value, "host", null)
+                  path   = http_get.value.path
+                  port   = http_get.value.port
+                  scheme = http_get.value.scheme
+                  host   = http_get.value.host
 
                   dynamic "http_header" {
-                    for_each = contains(keys(http_get.value), "http_header") ? http_get.value.http_header : []
+                    for_each = http_get.value.http_header != null ? http_get.value.http_header : []
                     content {
                       name  = http_header.value.name
                       value = http_header.value.value
@@ -323,7 +323,7 @@ resource "kubernetes_deployment" "deploy_app" {
               }
 
               dynamic "exec" {
-                for_each = contains(keys(liveness_probe.value), "exec") ? [liveness_probe.value.exec] : []
+                for_each = liveness_probe.value.exec != null ? [liveness_probe.value.exec] : []
 
                 content {
                   command = exec.value.command
@@ -331,7 +331,7 @@ resource "kubernetes_deployment" "deploy_app" {
               }
 
               dynamic "tcp_socket" {
-                for_each = contains(keys(liveness_probe.value), "tcp_socket") ? [liveness_probe.value.tcp_socket] : []
+                for_each = liveness_probe.value.tcp_socket != null ? [liveness_probe.value.tcp_socket] : []
                 content {
                   port = tcp_socket.value.port
                 }
@@ -342,34 +342,33 @@ resource "kubernetes_deployment" "deploy_app" {
           dynamic "readiness_probe" {
             for_each = flatten([var.readiness_probe])
             content {
-              initial_delay_seconds = lookup(readiness_probe.value, "initial_delay_seconds", null)
-              period_seconds        = lookup(readiness_probe.value, "period_seconds", null)
-              timeout_seconds       = lookup(readiness_probe.value, "timeout_seconds", null)
-              success_threshold     = lookup(readiness_probe.value, "success_threshold", null)
-              failure_threshold     = lookup(readiness_probe.value, "failure_threshold", null)
+              initial_delay_seconds = readiness_probe.value.initial_delay_seconds
+              period_seconds        = readiness_probe.value.period_seconds
+              timeout_seconds       = readiness_probe.value.timeout_seconds
+              success_threshold     = readiness_probe.value.success_threshold
+              failure_threshold     = readiness_probe.value.failure_threshold
 
               dynamic "http_get" {
-                for_each = contains(keys(readiness_probe.value), "http_get") ? [readiness_probe.value.http_get] : []
+                for_each = readiness_probe.value.http_get != null ? [readiness_probe.value.http_get] : []
 
                 content {
-                  path   = lookup(http_get.value, "path", null)
-                  port   = lookup(http_get.value, "port", null)
-                  scheme = lookup(http_get.value, "scheme", null)
-                  host   = lookup(http_get.value, "host", null)
+                  path   = http_get.value.path
+                  port   = http_get.value.port
+                  scheme = http_get.value.scheme
+                  host   = http_get.value.host
 
                   dynamic "http_header" {
-                    for_each = contains(keys(http_get.value), "http_header") ? http_get.value.http_header : []
+                    for_each = http_get.value.http_header != null ? http_get.value.http_header : []
                     content {
                       name  = http_header.value.name
                       value = http_header.value.value
                     }
                   }
-
                 }
               }
 
               dynamic "exec" {
-                for_each = contains(keys(readiness_probe.value), "exec") ? [readiness_probe.value.exec] : []
+                for_each = readiness_probe.value.exec != null ? [readiness_probe.value.exec] : []
 
                 content {
                   command = exec.value.command
@@ -377,7 +376,7 @@ resource "kubernetes_deployment" "deploy_app" {
               }
 
               dynamic "tcp_socket" {
-                for_each = contains(keys(readiness_probe.value), "tcp_socket") ? [readiness_probe.value.tcp_socket] : []
+                for_each = readiness_probe.value.tcp_socket != null ? [readiness_probe.value.tcp_socket] : []
                 content {
                   port = tcp_socket.value.port
                 }
@@ -389,31 +388,30 @@ resource "kubernetes_deployment" "deploy_app" {
             for_each = flatten([var.lifecycle_events])
             content {
               dynamic "pre_stop" {
-                for_each = contains(keys(lifecycle.value), "pre_stop") ? [lifecycle.value.pre_stop] : []
+                for_each = lifecycle.value.pre_stop != null ? [lifecycle.value.pre_stop] : []
 
                 content {
                   dynamic "http_get" {
-                    for_each = contains(keys(pre_stop.value), "http_get") ? [pre_stop.value.http_get] : []
+                    for_each = pre_stop.value.http_get != null ? [pre_stop.value.http_get] : []
 
                     content {
-                      path   = lookup(http_get.value, "path", null)
-                      port   = lookup(http_get.value, "port", null)
-                      scheme = lookup(http_get.value, "scheme", null)
-                      host   = lookup(http_get.value, "host", null)
+                      path   = http_get.value.path
+                      port   = http_get.value.port
+                      scheme = http_get.value.scheme
+                      host   = http_get.value.host
 
                       dynamic "http_header" {
-                        for_each = contains(keys(http_get.value), "http_header") ? http_get.value.http_header : []
+                        for_each = http_get.value.http_header != null ? http_get.value.http_header : []
                         content {
                           name  = http_header.value.name
                           value = http_header.value.value
                         }
                       }
-
                     }
                   }
 
                   dynamic "exec" {
-                    for_each = contains(keys(pre_stop.value), "exec") ? [pre_stop.value.exec] : []
+                    for_each = pre_stop.value.exec != null ? [pre_stop.value.exec] : []
 
                     content {
                       command = exec.value.command
@@ -421,7 +419,7 @@ resource "kubernetes_deployment" "deploy_app" {
                   }
 
                   dynamic "tcp_socket" {
-                    for_each = contains(keys(pre_stop.value), "tcp_socket") ? [pre_stop.value.tcp_socket] : []
+                    for_each = pre_stop.value.tcp_socket != null ? [pre_stop.value.tcp_socket] : []
                     content {
                       port = tcp_socket.value.port
                     }
@@ -430,31 +428,30 @@ resource "kubernetes_deployment" "deploy_app" {
               }
 
               dynamic "post_start" {
-                for_each = contains(keys(lifecycle.value), "post_start") ? [lifecycle.value.post_start] : []
+                for_each = lifecycle.value.post_start != null ? [lifecycle.value.post_start] : []
 
                 content {
                   dynamic "http_get" {
-                    for_each = contains(keys(post_start.value), "http_get") ? [post_start.value.http_get] : []
+                    for_each = post_start.value.http_get != null ? [post_start.value.http_get] : []
 
                     content {
-                      path   = lookup(http_get.value, "path", null)
-                      port   = lookup(http_get.value, "port", null)
-                      scheme = lookup(http_get.value, "scheme", null)
-                      host   = lookup(http_get.value, "host", null)
+                      path   = http_get.value.path
+                      port   = http_get.value.port
+                      scheme = http_get.value.scheme
+                      host   = http_get.value.host
 
                       dynamic "http_header" {
-                        for_each = contains(keys(http_get.value), "http_header") ? http_get.value.http_header : []
+                        for_each = http_get.value.http_header != null ? http_get.value.http_header : []
                         content {
                           name  = http_header.value.name
                           value = http_header.value.value
                         }
                       }
-
                     }
                   }
 
                   dynamic "exec" {
-                    for_each = contains(keys(post_start.value), "exec") ? [post_start.value.exec] : []
+                    for_each = post_start.value.exec != null ? [post_start.value.exec] : []
 
                     content {
                       command = exec.value.command
@@ -462,7 +459,7 @@ resource "kubernetes_deployment" "deploy_app" {
                   }
 
                   dynamic "tcp_socket" {
-                    for_each = contains(keys(post_start.value), "tcp_socket") ? [post_start.value.tcp_socket] : []
+                    for_each = post_start.value.tcp_socket != null ? [post_start.value.tcp_socket] : []
                     content {
                       port = tcp_socket.value.port
                     }
